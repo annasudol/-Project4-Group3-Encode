@@ -1,12 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) { }
 
-  @Get("get-token-contract-address")
-  getTokenContractAddress(): any {
-    return this.appService.getTokenContractAddress();
+  @Get('balances/:address')
+  getBlock(@Param('address') address: string) {
+    return this.appService.getBalances(address);
   }
 }
