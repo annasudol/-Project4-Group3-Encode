@@ -6,15 +6,18 @@ import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField';
 import Boxes from './Boxes'
-import tokenJSOn from './assets/TokenizedBalout.json'
-const tokenAddress = '0xA5a68F4a956D366711321FB3642cF100bD34018C'
-const backendUrl = 'http://localhost:3000'
+import TokenizedBaloutJSON from './assets/TokenizedBalout.json';
+import MyTokenJSON from './assets/MyToken.json'
+const tokenBaloutAddress = '0xA5a68F4a956D366711321FB3642cF100bD34018C';
+const voteAddress = '0x6E3Ec7bD445F25Bf7Da411BAdd4Dac56A4E4Eaaf';
+const backendUrl = 'http://localhost:3000';
+
 function App() {
     const [wallet, setWallet] = React.useState<ethers.Wallet | undefined>()
     const [provider, setProvider] = React.useState<ethers.providers.Provider | undefined>()
-    const [contract, setContract] = React.useState<
-        ethers.Contract | undefined
-    >();
+    const [contractBalout, setContractBalout] = React.useState<ethers.Contract | undefined>();
+    const [contractToken, setContractToken] = React.useState<ethers.Contract | undefined>();
+
     const [ethBalance, setEthBalance] = React.useState<string | undefined>();
     const [tokenBalance, setTokenBalance] = React.useState<string | undefined>();
     const [votePower, setVotePower] = React.useState<string | undefined>();
@@ -24,69 +27,61 @@ function App() {
 
     useEffect(() => {
         setProvider(ethers.getDefaultProvider('goerli'))
-        const tokenContract = new ethers.Contract(
-            tokenAddress,
-            tokenJSOn.abi,
+        const tokenBalout = new ethers.Contract(
+            tokenBaloutAddress,
+            TokenizedBaloutJSON.abi,
             wallet
         )
-        setContract(tokenContract);
-        // updateValues();
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    console.log('that olive candy yellow void certain burden result spike leader dose news'.split(' ').length, 'zz')
-
-    
+        setContractBalout(tokenBalout);
+        const tokenVote = new ethers.Contract(
+            voteAddress,
+            MyTokenJSON.abi,
+            wallet
+        )
+        setContractToken(tokenVote);
     }, [wallet])
 
     const createWallet = () => {
-        const myWallet = provider && ethers.Wallet.createRandom().connect(provider)
+        const myWallet = provider && ethers.Wallet.createRandom().connect(provider);
         setWallet(myWallet)
+        myWallet?.address && updateValues(myWallet?.address);
     }
 
-    const updateValues = React.useCallback(() => {
+    const updateValues = async (walletAddress: string) => {
+        try {
+            const balanceBN: ethers.BigNumberish | undefined = await provider?.getBalance(walletAddress);
+            const balance =  balanceBN && parseFloat(ethers.utils.formatEther(balanceBN)).toString();
+            setEthBalance(balance)
+            if(contractBalout !== undefined) {
+                // const vp = await contractBalout.targetBlockNumber();
+                // console.log(typeof contractBalout === null', 'contractBalout')
+                // contractBalout?.emit.targetBlockNumber().then((res: any)=> console.log(res))
+                console.log(contractBalout.methods)
+            }
 
-        wallet?.getBalance().then((balance: any) => {
-            const ethBalance = parseFloat(ethers.utils.formatEther(balance)).toString();
-                setEthBalance(ethBalance)
-        });
-
-        console.log('that olive candy yellow void certain burden result spike leader dose news'.split(' ').length, 'zz')
-        //     console.log(ethBalance, 'ethBalance')
-        //     let tokenBalance = ''
-        //     let votePower = ''
-        //     if (contract) {
-        //         contract['balanceOf'](wallet?.address).then(
-        //             (balanceBN: ethers.BigNumberish) => {
-        //                 tokenBalance = parseFloat(
-        //                     ethers.utils.formatEther(balanceBN)
-        //                 ).toString()
-        //             }
-        //         )
-        //         contract['getVotes'](wallet?.address).then(
-        //             (votePowerBN: ethers.BigNumberish) => {
-        //                 votePower = parseFloat(
-        //                     ethers.utils.formatEther(votePowerBN)
-        //                 ).toString()
-        //             }
-        //         )
-        //     }
-        //     console.log(tokenBalance, tokenBalance, votePower)
-        // })
-    }, [contract, wallet])
+        } catch(err) {
+            console.log(err)
+        }
+    }
 
     const importWallet = async () => {
         try{
+            setError(undefined)
             const myWallet = provider && mnemonic && ethers.Wallet.fromMnemonic(mnemonic);
-            myWallet && setWallet(myWallet)
+            if(myWallet) {
+                setWallet(myWallet)
+                myWallet?.address && updateValues(myWallet?.address);
+            }
         } catch(err) {
             setError('error with importing wallet')
         }
 
     }
 
-    const connectBallotContract = (address: string) => {
-        // TODO: create ballot contract instance to this address
+    const connectBallotcontractBalout = (address: string) => {
+        // TODO: create ballot contractBalout instance to this address
         // TODO: fetch information of that ballot to be displayed in the page
-        // this.ballotContractAddress = address;
+        // this.ballotcontractBaloutAddress = address;
     }
 
     const requestTokensTen = () => {
@@ -97,11 +92,13 @@ function App() {
         //this.tokenRequestPending = true;
     }
 
+
+
     return (
         <div className="app">
             <header className="App-header">
                 <h1>Tokenized Ballot app</h1>
-                {wallet ? <p>{`Your wallet address is ${wallet.address}`}</p> : (
+                {wallet?.address !== undefined ? <p>{`Your wallet address is ${wallet.address}`}</p> : (
                 <Stack spacing={2} direction="column">
                     <Stack spacing={2} direction="row">
                         <Button variant="contained" color="success" onClick={createWallet}>create wallet</Button>
@@ -112,8 +109,9 @@ function App() {
                 </Stack>
       )}
                 {/* {wallet && <Boxes />} */}
-                <p>ethBalance {ethBalance}</p>
+                <p>ethBalance {ethBalance}ETH</p>
             </header>
+            <p>{error}</p>
         </div>
     )
 }
