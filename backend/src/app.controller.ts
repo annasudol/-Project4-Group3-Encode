@@ -5,8 +5,8 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) { }
 
-  @Get('balances/:address')
+  @Get('requestToken/:address')
   getBlock(@Param('address') address: string) {
-    return this.appService.getBalances(address);
+    return this.appService.requestToken(address);
   }
 }
