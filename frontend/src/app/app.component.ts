@@ -3,9 +3,6 @@ import { Component } from '@angular/core';
 import { ethers } from 'ethers';
 import tokenJson from '../assets/MyToken.json'
 import ballotJson from '../assets/Ballot.json'
-const tokenContractAddress = '0x6E3Ec7bD445F25Bf7Da411BAdd4Dac56A4E4Eaaf';
-const ballotContractAddress = '0xA5a68F4a956D366711321FB3642cF100bD34018C';
-
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
@@ -65,8 +62,6 @@ export class AppComponent {
             'loading...',
             'loading...'
         ];
-
-
         this.wallet?.getBalance().then((balance) => {
             this.ethBalance = parseFloat(ethers.utils.formatEther(balance));
             if (this.tokenContract) {
@@ -134,7 +129,7 @@ export class AppComponent {
 
     transferTokens(to: string, amount: number | string) {
         if (this.tokenContract) {
-            this.tokenContract['transfer'](to).then(this.updateValues());
+            this.tokenContract['transfer'](to, amount).then(this.updateValues());
         }
     }
 
